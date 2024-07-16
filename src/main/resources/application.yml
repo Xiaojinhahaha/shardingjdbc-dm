@@ -1,0 +1,31 @@
+server:
+  port: 8188
+logging:
+  config: classpath:logback-spring.xml
+mybatis:
+  typeAliasesPackage: com.example.entity
+  mapper-locations: classpath*:mapper/*.xml
+spring:
+  datasource:
+    url: jdbc:shardingsphere:classpath:sharding-tables-date.yaml
+    driver-class-name: org.apache.shardingsphere.driver.ShardingSphereDriver
+    dynamic:
+      druid:
+        initial-size: 5
+        min-idle: 10
+        max-active: 20
+        max-wait: 600000
+        time-between-eviction-runs-millis: 60000
+        min-evictable-idle-time-millis: 300000
+        max-evictable-idle-time-millis: 900000
+        validation-query: SELECT 1 FROM DUAL
+        test-while-idle: true
+        test-on-borrow: false
+        test-on-return: false
+      primary: sharding
+      datasource:
+        master:
+          name: SHARDING_TEST
+          url: jdbc:dm://localhost:5236?schema=${spring.datasource.dynamic.datasource.master.name}&columnNameUpperCase=false
+          username: ADMIN
+          password: 123456

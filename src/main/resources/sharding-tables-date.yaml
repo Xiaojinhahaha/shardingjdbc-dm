@@ -1,0 +1,58 @@
+mode:
+  type: Standalone
+  repository:
+    type: JDBC
+
+dataSources:
+  ds0:
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+    driverClassName: dm.jdbc.driver.DmDriver
+    jdbcUrl: jdbc:dm://localhost:5236?schema=SHARDING_TEST&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true
+    username: ADMIN
+    password: 123456
+  ds1:
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+    driverClassName: dm.jdbc.driver.DmDriver
+    jdbcUrl: jdbc:dm://localhost:5236?schema=SHARDING_TEST&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true
+    username: ADMIN
+    password: 123456
+### 表名大写，防止找不到表名
+rules:
+- !READWRITE_SPLITTING
+  dataSources:
+    ds0:
+      writeDataSourceName: ds0
+      readDataSourceNames:
+        - ds1
+      transactionalReadQueryStrategy: PRIMARY
+      loadBalancerName: random
+  loadBalancers:
+    random:
+      type: RANDOM
+- !SINGLE
+  tables:
+    - "ds0.*"
+- !SHARDING
+  tables:
+    T_TEST_DATE:
+      actualDataNodes: ds0.T_TEST_DATE_2024_0$->{1..3}
+      tableStrategy:
+        standard:
+          shardingColumn: CREATE_DATE
+          shardingAlgorithmName: table_algorithm
+      keyGenerateStrategy:
+        column: ID
+        keyGeneratorName: snowflake_generator
+  shardingAlgorithms:
+    table_algorithm:
+      props:
+        strategy: standard
+        algorithmClassName: com.example.sharding.TableShardingAlgorithm
+      type: CLASS_BASED
+  keyGenerators:
+    snowflake_generator:
+      type: SNOWFLAKE
+
+props:
+  sql-show: true
+

@@ -1,0 +1,38 @@
+mode:
+  type: Standalone
+  repository:
+    type: JDBC
+
+dataSources:
+  ds:
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+    driverClassName: dm.jdbc.driver.DmDriver
+    jdbcUrl: jdbc:dm://localhost:5236?schema=SHARDING_TEST&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true
+    username: ADMIN
+    password: 123456
+rules:
+- !SINGLE
+  tables:
+    - "ds.*"
+- !SHARDING
+  tables:
+    T_TEST:
+      actualDataNodes: ds.T_TEST_$->{0..2}
+      tableStrategy:
+        standard:
+          shardingColumn: NUM
+          shardingAlgorithmName: t-test-inline
+      keyGenerateStrategy:
+        column: ID
+        keyGeneratorName: snowflake_generator
+  shardingAlgorithms:
+    t-test-inline:
+      type: INLINE
+      props:
+        algorithm-expression: T_TEST_$->{NUM % 3}
+  keyGenerators:
+    snowflake_generator:
+      type: SNOWFLAKE
+
+props:
+  sql-show: true
